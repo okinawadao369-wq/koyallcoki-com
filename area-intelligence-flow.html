@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>エリア診断フローのイメージ ― KOYA Area Intelligence</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --bg:#0A0E1A;
+    --bg2:#111827;
+    --card:#1A2236;
+    --border:#2D3748;
+    --blue:#3B82F6;
+    --teal:#14B8A6;
+    --purple:#8B5CF6;
+    --amber:#F59E0B;
+    --green:#10B981;
+    --text:#E2E8F0;
+    --slate:#94A3B8;
+    --muted:#64748B;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:radial-gradient(circle at 50% -10%,#141d33 0%,var(--bg) 55%);color:var(--text);font-family:"DM Sans","Hiragino Sans","Yu Gothic",Arial,sans-serif;line-height:1.7;min-height:100vh;}
+  a{color:var(--teal);}
+  .wrap{max-width:640px;margin:0 auto;padding:28px 20px 60px;text-align:center;}
+  .back{display:inline-block;font-size:13px;color:var(--slate);text-decoration:none;margin-bottom:18px;}
+  .back:hover{color:var(--teal);}
+  h1{font-family:"DM Sans","Hiragino Sans","Yu Gothic",sans-serif;color:var(--text);font-size:22px;margin:0 0 8px;font-weight:700;}
+  p.lead{color:var(--slate);font-size:14.5px;max-width:480px;margin:0 auto 32px;}
+
+  /* phone mockup */
+  .phone{
+    width:280px;height:560px;margin:0 auto;
+    background:linear-gradient(160deg,#141c2e,#05080f);
+    border-radius:38px;padding:14px;
+    box-shadow:0 24px 60px rgba(59,130,246,0.12), inset 0 0 0 2px rgba(59,130,246,0.08);
+    position:relative;
+  }
+  .phone::before{
+    content:"";position:absolute;top:26px;left:50%;transform:translateX(-50%);
+    width:70px;height:8px;border-radius:6px;background:rgba(0,0,0,0.6);
+  }
+  .screen{
+    width:100%;height:100%;background:var(--bg);border-radius:26px;
+    overflow:hidden;position:relative;padding:44px 16px 20px;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    cursor:pointer;
+    box-shadow:inset 0 0 0 1px rgba(59,130,246,0.15);
+  }
+  .screen-label{position:absolute;top:14px;left:0;right:0;text-align:center;font-size:10px;letter-spacing:.12em;color:var(--blue);text-transform:uppercase;font-weight:700;}
+
+  .stage{display:none;width:100%;flex:1;flex-direction:column;align-items:center;justify-content:center;animation:fadeUp .5s ease both;}
+  .stage.active{display:flex;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+  .intro-icon{font-size:34px;margin-bottom:14px;filter:drop-shadow(0 0 10px rgba(59,130,246,0.5));}
+  .stage h2{font-size:15px;color:var(--text);margin:0 0 6px;font-weight:700;}
+  .stage p{font-size:12px;color:var(--slate);margin:0;max-width:190px;}
+
+  .card-list{width:100%;display:flex;flex-direction:column;gap:8px;}
+  .dcard{
+    background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent,var(--blue));border-radius:10px;
+    padding:9px 12px;text-align:left;opacity:0;transform:translateX(14px);
+    animation:slideIn .45s ease forwards;
+  }
+  .dcard .name{font-size:11.5px;font-weight:700;color:var(--text);}
+  .dcard .stat{font-size:10.5px;color:var(--accent,var(--blue));margin-top:2px;}
+  .dcard .bar{height:4px;border-radius:3px;background:rgba(255,255,255,0.08);margin-top:6px;overflow:hidden;}
+  .dcard .bar i{display:block;height:100%;background:var(--accent,var(--blue));width:0%;animation:fill 1s ease forwards;animation-delay:.3s;}
+  @keyframes slideIn{to{opacity:1;transform:translateX(0);}}
+  @keyframes fill{to{width:var(--w);}}
+
+  .spinner{width:46px;height:46px;border-radius:50%;border:4px solid var(--card);border-top-color:var(--blue);animation:spin 1s linear infinite;margin-bottom:16px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .go-badge{
+    width:110px;height:110px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4ee0a8,#0d9668);
+    display:flex;align-items:center;justify-content:center;color:#052e14;font-weight:800;font-size:26px;
+    font-family:"DM Sans",sans-serif;letter-spacing:.04em;margin-bottom:14px;
+    box-shadow:0 0 0 6px rgba(16,185,129,0.12), 0 10px 30px rgba(16,185,129,0.35);
+    animation:pop .5s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes pop{0%{transform:scale(.4);opacity:0;}100%{transform:scale(1);opacity:1;}}
+  .result-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
+  .result-sub{font-size:11.5px;color:var(--slate);max-width:210px;}
+
+  .progress-dots{display:flex;gap:6px;margin-top:16px;}
+  .progress-dots span{width:6px;height:6px;border-radius:50%;background:var(--muted);transition:background .3s;}
+  .progress-dots span.on{background:var(--blue);}
+
+  .tap-hint{font-size:10px;color:var(--muted);position:absolute;bottom:10px;left:0;right:0;text-align:center;}
+
+  .controls{margin-top:26px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:6px;font-weight:700;font-size:13px;text-decoration:none;border:none;cursor:pointer;transition:opacity .15s;}
+  .btn-blue{background:var(--blue);color:#0b1424;}
+  .btn-outline{background:transparent;color:var(--text);border:1.5px solid var(--border);}
+  .btn:hover{opacity:.85;}
+
+  .disclaimer{margin-top:28px;font-size:12px;color:var(--muted);max-width:480px;margin-left:auto;margin-right:auto;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="https://koyallcoki.com/#area-intelligence">← 合同会社koyaサイトに戻る</a>
+  <h1>エリア診断フローのイメージ</h1>
+  <p class="lead">KOYA Area Intelligenceが、候補エリアの市場性・地域性・米軍軍属市場を数値化し、出店の意思決定につなげるまでの流れをイメージとして可視化したものです。</p>
+
+  <div class="phone" id="phone">
+    <div class="screen" id="screen" onclick="skip()">
+      <div class="screen-label">koya area intelligence</div>
+
+      <div class="stage active" data-stage="0">
+        <div class="intro-icon">📍</div>
+        <h2>候補エリアのデータを収集中…</h2>
+        <p>人口・GDP・交通動線・地域性・米軍軍属市場を41市町村分から取得します</p>
+      </div>
+
+      <div class="stage" data-stage="1">
+        <div class="card-list" id="cardList"></div>
+      </div>
+
+      <div class="stage" data-stage="2">
+        <div class="spinner"></div>
+        <h2>AIが分析中…</h2>
+        <p>公的データ・独自推計・現場知見を区別しながら総合スコアを算出します</p>
+      </div>
+
+      <div class="stage" data-stage="3">
+        <div class="go-badge">GO</div>
+        <div class="result-title">総合判定：GO（出店推進エリア）</div>
+        <div class="result-sub">候補地の市場性・地域受容性・業種適合を踏まえた診断結果です。</div>
+      </div>
+
+      <div class="progress-dots" id="dots">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="tap-hint">タップで次へ</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-blue" onclick="restart()">もう一度見る</button>
+    <a class="btn btn-outline" href="https://koyallcoki.com/#area-intelligence">サイトに戻る</a>
+  </div>
+
+  <p class="disclaimer">※これは診断フローをご理解いただくための概念的なイメージ映像です。実際の指標値・判定結果は個別の診断依頼にもとづき作成し、公的データ・推計データ・独自仮説を明確に区別してご提示します。売上・集客成果を保証するものではありません。</p>
+</div>
+
+<script>
+  const cards = [
+    {name:'市町村GDP・人口', stat:'公的統計にもとづき把握', w:'75%', accent:'var(--blue)'},
+    {name:'交通量・道路動線', stat:'幹線道路・IC近接性を評価', w:'88%', accent:'var(--teal)'},
+    {name:'コミュニティ構造・ユイマール', stat:'地域受容性を独自指標化', w:'55%', accent:'var(--purple)'},
+    {name:'米軍・軍属マーケット', stat:'SOFA世帯・英語対応ニーズ', w:'68%', accent:'var(--amber)'},
+    {name:'業種適合性', stat:'ターゲット層との相性を判定', w:'80%', accent:'var(--green)'},
+  ];
+  const cardList = document.getElementById('cardList');
+  cards.forEach((c,i)=>{
+    const el = document.createElement('div');
+    el.className = 'dcard';
+    el.style.setProperty('--accent', c.accent);
+    el.style.animationDelay = (i*0.28)+'s';
+    el.innerHTML = `<div class="name">${c.name}</div><div class="stat">${c.stat}</div><div class="bar"><i style="--w:${c.w};animation-delay:${0.3+i*0.28}s"></i></div>`;
+    cardList.appendChild(el);
+  });
+
+  const stages = document.querySelectorAll('.stage');
+  const dots = document.querySelectorAll('#dots span');
+  let current = 0;
+  let timer = null;
+  const durations = [1800, 2600, 2200, 3600];
+
+  function show(idx){
+    stages.forEach(s=>s.classList.remove('active'));
+    stages[idx].classList.add('active');
+    dots.forEach((d,i)=>d.classList.toggle('on', i===idx));
+    current = idx;
+    clearTimeout(timer);
+    timer = setTimeout(()=>{
+      const next = (current+1) % stages.length;
+      show(next);
+    }, durations[idx]);
+  }
+  function skip(){
+    show((current+1) % stages.length);
+  }
+  function restart(){
+    show(0);
+  }
+  show(0);
+</script>
+</body>
+</html>
