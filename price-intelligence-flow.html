@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>価格判断フローのイメージ ― koya Data Intelligence</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --koya-navy:#102A4C;
+    --koya-ocean:#214E7F;
+    --koya-mid:#2E6B9F;
+    --koya-sky:#3E8CC0;
+    --koya-gold:#C9A227;
+    --koya-slate:#4A5568;
+    --koya-fog:#E6EBF1;
+    --koya-bg:#F7F9FC;
+    --koya-text:#1A2233;
+    --go-green:#1F9D55;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--koya-bg);color:var(--koya-text);font-family:"Yu Gothic","Hiragino Sans",Arial,sans-serif;line-height:1.7;}
+  a{color:var(--koya-ocean);}
+  .wrap{max-width:640px;margin:0 auto;padding:28px 20px 60px;text-align:center;}
+  .back{display:inline-block;font-size:13px;color:var(--koya-slate);text-decoration:none;margin-bottom:18px;}
+  .back:hover{color:var(--koya-ocean);}
+  h1{font-family:Georgia,"Yu Mincho","游明朝",serif;color:var(--koya-navy);font-size:22px;margin:0 0 8px;}
+  p.lead{color:var(--koya-slate);font-size:14.5px;max-width:480px;margin:0 auto 32px;}
+
+  /* phone mockup */
+  .phone{
+    width:280px;height:560px;margin:0 auto;
+    background:linear-gradient(160deg,#1a2233,#0d1626);
+    border-radius:38px;padding:14px;
+    box-shadow:0 24px 50px rgba(16,42,76,0.28), inset 0 0 0 2px rgba(255,255,255,0.05);
+    position:relative;
+  }
+  .phone::before{
+    content:"";position:absolute;top:26px;left:50%;transform:translateX(-50%);
+    width:70px;height:8px;border-radius:6px;background:rgba(0,0,0,0.55);
+  }
+  .screen{
+    width:100%;height:100%;background:#fff;border-radius:26px;
+    overflow:hidden;position:relative;padding:44px 16px 20px;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    cursor:pointer;
+  }
+  .screen-label{position:absolute;top:14px;left:0;right:0;text-align:center;font-size:10px;letter-spacing:.12em;color:var(--koya-mid);text-transform:uppercase;font-weight:700;}
+
+  /* stage: intro */
+  .stage{display:none;width:100%;flex:1;flex-direction:column;align-items:center;justify-content:center;animation:fadeUp .5s ease both;}
+  .stage.active{display:flex;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+  .intro-icon{font-size:34px;margin-bottom:14px;}
+  .stage h2{font-size:15px;color:var(--koya-navy);margin:0 0 6px;font-family:Georgia,"游明朝",serif;}
+  .stage p{font-size:12px;color:var(--koya-slate);margin:0;max-width:190px;}
+
+  /* stage: cards */
+  .card-list{width:100%;display:flex;flex-direction:column;gap:8px;}
+  .dcard{
+    background:#F7F9FC;border:1px solid var(--koya-fog);border-radius:10px;
+    padding:9px 12px;text-align:left;opacity:0;transform:translateX(14px);
+    animation:slideIn .45s ease forwards;
+  }
+  .dcard .name{font-size:11.5px;font-weight:700;color:var(--koya-navy);}
+  .dcard .stat{font-size:10.5px;color:var(--koya-mid);margin-top:2px;}
+  .dcard .bar{height:4px;border-radius:3px;background:var(--koya-fog);margin-top:6px;overflow:hidden;}
+  .dcard .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--koya-sky),var(--koya-ocean));width:0%;animation:fill 1s ease forwards;animation-delay:.3s;}
+  @keyframes slideIn{to{opacity:1;transform:translateX(0);}}
+  @keyframes fill{to{width:var(--w);}}
+
+  /* stage: processing */
+  .spinner{width:46px;height:46px;border-radius:50%;border:4px solid var(--koya-fog);border-top-color:var(--koya-ocean);animation:spin 1s linear infinite;margin-bottom:16px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* stage: result */
+  .go-badge{
+    width:110px;height:110px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#3fc978,var(--go-green));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:26px;
+    font-family:Georgia,"游明朝",serif;letter-spacing:.04em;margin-bottom:14px;
+    box-shadow:0 10px 24px rgba(31,157,85,0.35);
+    animation:pop .5s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes pop{0%{transform:scale(.4);opacity:0;}100%{transform:scale(1);opacity:1;}}
+  .result-title{font-size:14px;font-weight:700;color:var(--koya-navy);margin-bottom:4px;}
+  .result-sub{font-size:11.5px;color:var(--koya-slate);max-width:200px;}
+
+  .progress-dots{display:flex;gap:6px;margin-top:16px;}
+  .progress-dots span{width:6px;height:6px;border-radius:50%;background:var(--koya-fog);transition:background .3s;}
+  .progress-dots span.on{background:var(--koya-gold);}
+
+  .tap-hint{font-size:10px;color:#B9C2D0;position:absolute;bottom:10px;left:0;right:0;text-align:center;}
+
+  .controls{margin-top:26px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:6px;font-weight:700;font-size:13px;text-decoration:none;border:none;cursor:pointer;transition:opacity .15s;}
+  .btn-gold{background:var(--koya-gold);color:#102A4C;}
+  .btn-outline{background:transparent;color:var(--koya-navy);border:1.5px solid var(--koya-fog);}
+  .btn:hover{opacity:.85;}
+
+  .disclaimer{margin-top:28px;font-size:12px;color:#8592A6;max-width:480px;margin-left:auto;margin-right:auto;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="https://koyallcoki.com/#intelligence">← 合同会社koyaサイトに戻る</a>
+  <h1>価格判断フローのイメージ</h1>
+  <p class="lead">koyaが運用するデータ・インテリジェンス基盤が、市場環境の変化をどのように捉え、価格の意思決定につなげているか——その流れをイメージとして可視化したものです。</p>
+
+  <div class="phone" id="phone">
+    <div class="screen" id="screen" onclick="skip()">
+      <div class="screen-label">koya price intelligence</div>
+
+      <div class="stage active" data-stage="0">
+        <div class="intro-icon">📡</div>
+        <h2>市場データを収集中…</h2>
+        <p>為替・物価・地政学・ターゲット層の生活実態を継続的に取得します</p>
+      </div>
+
+      <div class="stage" data-stage="1">
+        <div class="card-list" id="cardList"></div>
+      </div>
+
+      <div class="stage" data-stage="2">
+        <div class="spinner"></div>
+        <h2>AIが分析中…</h2>
+        <p>事実と仮説を区別しながら、価格への影響を統合します</p>
+      </div>
+
+      <div class="stage" data-stage="3">
+        <div class="go-badge">GO</div>
+        <div class="result-title">現在の価格は妥当水準</div>
+        <div class="result-sub">市場環境に大きな変化なし。現行の価格設計を継続します。</div>
+      </div>
+
+      <div class="progress-dots" id="dots">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="tap-hint">タップで次へ</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-gold" onclick="restart()">もう一度見る</button>
+    <a class="btn btn-outline" href="https://koyallcoki.com/#intelligence">サイトに戻る</a>
+  </div>
+
+  <p class="disclaimer">※これは分析の流れをご理解いただくための概念的なイメージ映像です。実際の指標値・判定結果は非公開の社内基盤で管理しており、本ページには表示していません。判定は毎月の市場データにもとづき継続的に更新されます。</p>
+</div>
+
+<script>
+  const cards = [
+    {name:'為替（USD/JPY）', stat:'円安方向で推移', w:'70%'},
+    {name:'米国の物価動向', stat:'上昇基調が継続', w:'62%'},
+    {name:'地政学リスク', stat:'中程度で推移', w:'50%'},
+    {name:'ターゲット層の生活実態', stat:'所得・住居環境を継続把握', w:'80%'},
+    {name:'季節・ライフイベント時期', stat:'転勤シーズンが接近', w:'45%'},
+  ];
+  const cardList = document.getElementById('cardList');
+  cards.forEach((c,i)=>{
+    const el = document.createElement('div');
+    el.className = 'dcard';
+    el.style.animationDelay = (i*0.28)+'s';
+    el.innerHTML = `<div class="name">${c.name}</div><div class="stat">${c.stat}</div><div class="bar"><i style="--w:${c.w};animation-delay:${0.3+i*0.28}s"></i></div>`;
+    cardList.appendChild(el);
+  });
+
+  const stages = document.querySelectorAll('.stage');
+  const dots = document.querySelectorAll('#dots span');
+  let current = 0;
+  let timer = null;
+  const durations = [1800, 2600, 2200, 3600];
+
+  function show(idx){
+    stages.forEach(s=>s.classList.remove('active'));
+    stages[idx].classList.add('active');
+    dots.forEach((d,i)=>d.classList.toggle('on', i===idx));
+    current = idx;
+    clearTimeout(timer);
+    timer = setTimeout(()=>{
+      const next = (current+1) % stages.length;
+      show(next);
+    }, durations[idx]);
+  }
+  function skip(){
+    show((current+1) % stages.length);
+  }
+  function restart(){
+    show(0);
+  }
+  show(0);
+</script>
+</body>
+</html>
